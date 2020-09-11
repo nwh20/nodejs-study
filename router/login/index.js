@@ -4,6 +4,8 @@ var router = express.Router()
 var path = require('path')
 var mysql = require('mysql')
 var passport = require('passport')
+const { runInNewContext } = require('vm')
+const { join } = require('path')
 var LocalStrategy = require('passport-local').Strategy
 
 // database setting
@@ -17,25 +19,24 @@ var connection = mysql.createConnection({
 
 connection.connect()
 
-// router
 router.get('/', function(req, res) {
     var msg
     var errMsg = req.flash('error')
     if(errMsg) msg = errMsg
-    res.render('join.ejs', {'message': msg})
+    res.render('login.ejs', {'message': msg})
 })
 
 passport.serializeUser(function(user, done) {
-    console.log('session save', user.id)
+    console.log('save ', user.id)
     done(null, user.id)
 })
 
 passport.deserializeUser(function(id, done) {
-    console.log('session get id', id)
+    console.log('get id ', id)
     done(null, id)
 })
 
-passport.use('local-join', new LocalStrategy({
+passport.use('local-login', new LocalStrategy({
         usernameField: 'email',
         passwordField: 'password',
         passReqToCallback: true
@@ -43,21 +44,24 @@ passport.use('local-join', new LocalStrategy({
         var query = connection.query('select * from user where email=?', [email], function(err, rows) {
             if(err) return done(err)
             if(rows.length) {
-                return done(null, false, {message: 'your email is already used'})
+                return done(null, {'email': email, 'id': rows[0].UID})
             } else {
-                var sql = {email: email, pw: password}
-                var query = connection.query('insert into user set ?', sql, function(err, rows) {
-                    if(err) throw err
-                    return done(null, {'email': email, 'id': rows.insertId})
-                })
+                return done(null, false, {'message': 'Your login info is not found.'})
             }
         })
-}))
+    }
+))
 
-router.post('/', passport.authenticate('local-join', {
-    successRedirect: '/main',
-    failureRedirect: '/join',
-    failureFlash: true
-}))
+router.post('/', function(req, res, next) {
+    passport.authenticate('local-login', function(err, user, info) {
+        if(err) return res.status(500).json(err)
+        if(!user) return res.status(401).json(info.message)
+
+        req.logIn(user, function(err) {
+            if(err) return next(err)
+            return res.json(user);
+        })
+    })(req, res, next)
+})
 
 module.exports = router
