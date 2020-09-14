@@ -23,17 +23,19 @@
         })
 
         function sendAjax(url, data) {
-            data = JSON.stringify(data);
-
-            var xhr = new XMLHttpRequest();
-            xhr.open('POST', url);
-            xhr.setRequestHeader('Content-Type', 'application/json');
-            xhr.send(data);
+            data = JSON.stringify(data)
+            var xhr = new XMLHttpRequest()
+            xhr.open('POST', url)
+            xhr.setRequestHeader('Content-Type', 'application/json')
+            xhr.send(data)
             xhr.addEventListener('load', function() {
-                var result = JSON.parse(xhr.responseText);
-                var resultDiv = document.querySelector('.result');
-                if(result.email) resultDiv.innerHTML = 'Welcome, ' + result.email + '!';
-                else resultDiv.innerHTML = result;
+                var result = JSON.parse(xhr.responseText)
+                var resultDiv = document.querySelector('.result')
+                if(result.email) {
+                    window.location.href = '/main'
+                } else if(xhr.status === 401) {
+                    resultDiv.innerHTML = result + '<div class="signup"><a href="/join">Sign up</a></div>'
+                } else resultDiv.innerHTML = result
             });
         }
     </script>

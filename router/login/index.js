@@ -27,12 +27,10 @@ router.get('/', function(req, res) {
 })
 
 passport.serializeUser(function(user, done) {
-    console.log('save ', user.id)
     done(null, user.id)
 })
 
 passport.deserializeUser(function(id, done) {
-    console.log('get id ', id)
     done(null, id)
 })
 
@@ -54,8 +52,8 @@ passport.use('local-login', new LocalStrategy({
 
 router.post('/', function(req, res, next) {
     passport.authenticate('local-login', function(err, user, info) {
-        if(err) return res.status(500).json(err)
-        if(!user) return res.status(401).json(info.message)
+        if(err) res.status(500).json(err)
+        if(!user) res.status(401).json(info.message)
 
         req.logIn(user, function(err) {
             if(err) return next(err)
