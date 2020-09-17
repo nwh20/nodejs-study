@@ -25,15 +25,15 @@ router.post('/ajax', function(req, res) {
     var responseData = {}
 
     var query = connection.query('select name from user where email="' + email +'"', function(err, rows) {
-        if(err) throw err;
+        if(err) throw err
         if(rows[0]) {
-            responseData.result = 'ok';
-            responseData.name = rows[0].name;
+            responseData.result = 'ok'
+            responseData.name = rows[0].name
         } else {
-            responseData.result = 'none';
-            responseData.name = '';
+            responseData.result = 'none'
+            responseData.name = ''
         }
-        res.json(responseData);
+        res.json(responseData)
     })
 })
 
