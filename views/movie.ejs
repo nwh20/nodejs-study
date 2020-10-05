@@ -11,47 +11,42 @@
     <section class="showWrap">
         <ul>
             <li class="get_all">
-                <button>모든영화보기</button>
+                <button>View All</button>
                 <section class="showResult"></section>
             </li>
 
             <li class="post">
                 <form action="" method="post">
-                   <div> 제목 : <input type="text" name="title" placeholder="Terminator"> </div>
-                   <div> 장르 : <input type="text" name="type" placeholder="drama"> </div>
-                   <div> 평점 : <input type="text" name="grade" placeholder="8.43"> </div>
-                   <div> 주연 : <input type="text" name="actor" placeholder="Tom cruise"> </div>
+                   <div> Title : <input type="text" name="title" placeholder="Terminator"> </div>
+                   <div> Type : <input type="text" name="type" placeholder="drama"> </div>
+                   <div> Grade : <input type="text" name="grade" placeholder="8.43"> </div>
+                   <div> Actor : <input type="text" name="actor" placeholder="Tom cruise"> </div>
                 </form>
-                <button>영화추가</button>
+                <button>Add Movie</button>
                 <section class="showResult"></section>
             </li>
 
             <li class="get_id">
                 <input type="text" name="title">
-                <button>영화상세정보</button>
+                <button>Show Info</button>
                 <section class="showResult"></section>
             </li>
 
             <li class="delete_id">
                 <input type="text" name="title">
-                <button>영화삭제</button>
+                <button>Delete Movie</button>
                 <section class="showResult"></section>   
             </li>
 
-            <li class="update_id">
+            <!-- <li class="update_id">
                 <form action="" method="post">
-                   <div> 제목 : <input type="text" name="title" placeholder="Terminator"> </div>
-                   <div> 장르 : <input type="text" name="type"  placeholder="drama"> </div>
-                   <div> 평점 : <input type="text" name="grade" placeholder="8.43"> </div>
-                   <div> 주연 : <input type="text" name="actor" placeholder="Tom cruise"> </div>
+                   <div> Title : <input type="text" name="title" placeholder="Terminator"> </div>
+                   <div> Type : <input type="text" name="type"  placeholder="drama"> </div>
+                   <div> Grade : <input type="text" name="grade" placeholder="8.43"> </div>
+                   <div> Actor : <input type="text" name="actor" placeholder="Tom cruise"> </div>
                 </form>
-                <button>영화정보갱신</button>
-                <section class="showResult">ㅁㅁ</section>
-            </li>
-
-            <li class="get_min">
-                <button>현재 상영중인영화</button>
-                <section class="showResult">ㅁㅁ</section>
+                <button>Update Info</button>
+                <section class="showResult"></section> -->
             </li>
         </ul>
     </section>
@@ -70,6 +65,17 @@
                 case "get_all":
                     url = "/movie";
                     method = "GET";
+                    fn = function(result) {
+                        if(result.result === 1) {
+                            let titles = result.data.reduce(function(pre, next) {
+                                pre += "<li>" + next.title + "</li>";
+                                return pre;
+                            }, "");
+                            showResult.innerHTML = "<ul>" + titles + "</ul>";
+                        } else {
+                            showResult.innerHTML = "List not found";
+                        }
+                    }
                     break;
                 case "post":
                     url = "/movie";
@@ -79,15 +85,43 @@
                         pre[next.name] = next.value;
                         return pre;
                     }, {});
+                    fn = function(result) {
+                        if(result.result === 1) showResult.innerHTML = "New data was added";
+                    }
+                    break;
+                case "get_id":
+                    url = "/movie/" + li.getElementsByTagName("input")[0].value;
+                    method = "GET";
+                    fn = function(result) {
+                        if(result.result === 1) {
+                            var type = result.data[0].type;
+                            var grade = result.data[0].grade;
+                            var actor = result.data[0].actor;
+                            showResult.innerHTML = "<p>" + type + "</p>" + "<p>" + grade + "</p>" + "<p>" + actor + "</p>";
+                        } else  {
+                            showResult.innerHTML = "No data"
+                        }
+                    }
+                    break;
+                case "delete_id":
+                    url = "/movie/" + li.getElementsByTagName("input")[0].value;
+                    method = "DELETE";
+                    fn = function(result) {
+                        if(result.result === 1) {
+                            showResult.innerHTML = result.data + " was deleted";
+                        } else {
+                            showResult.innerHTML = "This movie is not on the list";
+                        }
+                    }
                     break;
                 default:
                     console.log("default");
                     break;
             }
-            sendAjax('http://127.0.0.1:3000/movie', method, data, showResult);
+            sendAjax(url, method, data, fn);
         })
 
-        function sendAjax(url, method, data, resultEle){ 
+        function sendAjax(url, method, data, fn){ 
             const xhr = new XMLHttpRequest();
             xhr.open(method, url);
             if(data) {
@@ -99,15 +133,7 @@
             xhr.send(data);
             xhr.addEventListener('load', function() {
                 const result = JSON.parse(xhr.responseText);
-                if(result.result === 1) {
-                    let titles = result.data.reduce(function(pre, next) {
-                        pre += "<li>" + next.title + "</li>";
-                        return pre;
-                    }, "");
-                    resultEle.innerHTML = "<ul>" + titles + "</ul>";
-                } else {
-                    resultEle.innerHTML = "list not found";
-                }
+                fn(result);
             });
         }
     </script>

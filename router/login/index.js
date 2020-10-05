@@ -19,6 +19,7 @@ var connection = mysql.createConnection({
 
 connection.connect()
 
+// router
 router.get('/', function(req, res) {
     var msg
     var errMsg = req.flash('error')
