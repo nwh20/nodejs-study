@@ -35,6 +35,7 @@ passport.deserializeUser(function(id, done) {
 
 passport.use('local-join', new LocalStrategy({
         usernameField: 'email',
+        nameField: 'name',
         passwordField: 'password',
         passReqToCallback: true
     }, function(req, email, password, done) {
